@@ -1,5 +1,6 @@
 package com.example.ssl_h8_arkkitehtuuri;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -7,12 +8,18 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    public static final int ADD_NOTE_REQUEST =1;  //10.3.2010 7 videon loppu, kirjoita psfi
 
     private NoteViewModel noteViewModel;
 
@@ -27,10 +34,19 @@ public class MainActivity extends AppCompatActivity {
         noteViewModel = ViewModelProviders.of(this).get(NoteViewModel.class);
         */
 
+        // 10.3.2020 7 videon lopussa
+        FloatingActionButton buttonAddNote = findViewById(R.id.button_add_note);
+        buttonAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AddNoteActivity.class);
+                startActivityForResult(intent, ADD_NOTE_REQUEST);
+            }
+        });
 
         //6.s videon lopusta, sen jälkeen kun jo tuo Toasti on jo tehty
         //Mihinkähän tämä tulee siinä omassa Frag-harjoiteuksessa? -onActivityCreated
-        RecyclerView recyclerView =findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         final NoteAdapter adapter = new NoteAdapter();
@@ -61,7 +77,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
     }
+
+    //10.3.2020 7 videon loppu 20:50
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ADD_NOTE_REQUEST && resultCode == RESULT_OK){
+            String title = data.getStringExtra(AddNoteActivity.EXTRA_TITLE);
+            String description = data.getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION);
+            int priority = data.getIntExtra(AddNoteActivity.EXTRA_PRIORITY,1);
+            Note note = new Note(title,description,priority);
+            noteViewModel.insert(note);
+            Toast.makeText(this, "Note saved", Toast.LENGTH_SHORT).show();
+        } else { //canceled
+            Toast.makeText(this, "Note not saved", Toast.LENGTH_SHORT).show();
+        }
+    }//Tämän jälkeen manifestiin pitää lisätä AddnoteActivitylle parentactivityksi Mainactivity ja MainActivitylle launchMode="singleTop
 }
